@@ -1,0 +1,10 @@
+﻿.gradle
+.idea
+.kotlin
+build/
+*.class
+*.jar
+!gradle-wrapper.jar
+
+# Sensitive config
+src/main/resources/application.yaml

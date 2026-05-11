@@ -1,0 +1,23 @@
+﻿ktor:
+  application:
+    modules:
+      - com.xentoryx.finance_tracker.MainKt.module
+  deployment:
+    port: 8080
+
+db:
+  url: "r2dbc:postgresql://YOUR_DB_HOST/YOUR_DB_NAME?sslmode=require"
+  user: "YOUR_DB_USER"
+  password: "YOUR_DB_PASSWORD"
+
+jwt:
+  secret: "YOUR_JWT_SECRET_MIN_32_CHARS"
+  issuer: "optispend"
+  audience: "optispend-users"
+  expiresIn: 900000
+  refreshExpiresIn: 2592000000
+
+email:
+  username: "YOUR_EMAIL@gmail.com"
+  password: "YOUR_GMAIL_APP_PASSWORD"
+  fromName: "OptiSpend Support"
