@@ -1,8 +1,14 @@
 ﻿package com.xentoryx.finance_tracker.di
 
 import com.xentoryx.finance_tracker.data.repository.*
+import com.xentoryx.finance_tracker.data.repository.catgory.CategoryRepositoryImpl
 import com.xentoryx.finance_tracker.domain.repository.auth.*
+import com.xentoryx.finance_tracker.domain.repository.category.CategoryRepository
 import com.xentoryx.finance_tracker.domain.usecase.auth.*
+import com.xentoryx.finance_tracker.domain.usecase.category.CreateCategoryUseCase
+import com.xentoryx.finance_tracker.domain.usecase.category.DeleteCategoryUseCase
+import com.xentoryx.finance_tracker.domain.usecase.category.GetCategoriesUseCase
+import com.xentoryx.finance_tracker.domain.usecase.category.UpdateCategoryUseCase
 import com.xentoryx.finance_tracker.infrastructure.email.EmailService
 import com.xentoryx.finance_tracker.security.JwtService
 import io.ktor.server.application.Application
@@ -28,7 +34,12 @@ fun appModule(application: Application) = module {
             }
         )
     }
+    single<CategoryRepository> { CategoryRepositoryImpl(get()) }
 
+    single { CreateCategoryUseCase(get()) }
+    single { GetCategoriesUseCase(get()) }
+    single { UpdateCategoryUseCase(get()) }
+    single { DeleteCategoryUseCase(get()) }
     single { JwtService(environment = get()) }
     single { EmailService(environment = get()) }
 
