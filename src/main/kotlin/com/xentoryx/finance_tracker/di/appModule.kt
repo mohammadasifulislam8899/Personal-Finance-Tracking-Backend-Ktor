@@ -1,8 +1,18 @@
 ﻿package com.xentoryx.finance_tracker.di
 
-import com.xentoryx.finance_tracker.data.repository.*
+import com.xentoryx.finance_tracker.data.repository.auth.OtpRepositoryImpl
+import com.xentoryx.finance_tracker.data.repository.auth.PasswordResetRepositoryImpl
+import com.xentoryx.finance_tracker.data.repository.auth.RefreshTokenRepositoryImpl
+import com.xentoryx.finance_tracker.data.repository.auth.UserRepositoryImpl
+import com.xentoryx.finance_tracker.data.repository.transaction.TransactionRepositoryImpl
 import com.xentoryx.finance_tracker.domain.repository.auth.*
+import com.xentoryx.finance_tracker.domain.repository.transaction.TransactionRepository
 import com.xentoryx.finance_tracker.domain.usecase.auth.*
+import com.xentoryx.finance_tracker.domain.usecase.transaction.CreateTransactionUseCase
+import com.xentoryx.finance_tracker.domain.usecase.transaction.DeleteTransactionUseCase
+import com.xentoryx.finance_tracker.domain.usecase.transaction.GetTransactionByIdUseCase
+import com.xentoryx.finance_tracker.domain.usecase.transaction.GetTransactionsUseCase
+import com.xentoryx.finance_tracker.domain.usecase.transaction.UpdateTransactionUseCase
 import com.xentoryx.finance_tracker.infrastructure.email.EmailService
 import com.xentoryx.finance_tracker.security.JwtService
 import io.ktor.server.application.Application
@@ -28,7 +38,13 @@ fun appModule(application: Application) = module {
             }
         )
     }
+    single<TransactionRepository> { TransactionRepositoryImpl(get()) }
 
+    single { CreateTransactionUseCase(get()) }
+    single { GetTransactionsUseCase(get()) }
+    single { GetTransactionByIdUseCase(get()) }
+    single { UpdateTransactionUseCase(get()) }
+    single { DeleteTransactionUseCase(get()) }
     single { JwtService(environment = get()) }
     single { EmailService(environment = get()) }
 
