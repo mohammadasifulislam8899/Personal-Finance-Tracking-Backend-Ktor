@@ -1,5 +1,6 @@
 ﻿package com.xentoryx.finance_tracker.plugins
 
+import com.xentoryx.finance_tracker.data.seeder.CategorySeeder
 import com.xentoryx.finance_tracker.data.table.*
 import io.ktor.server.application.Application
 import kotlinx.coroutines.runBlocking
@@ -14,11 +15,13 @@ fun Application.configureDatabases() {
     val db by inject<R2dbcDatabase>()
     runBlocking {
         suspendTransaction(db) {
+
             SchemaUtils.create(
                 Users, RefreshTokens, EmailVerifications, PasswordResets,
                 Accounts, Categories, Transactions, Budgets, RecurringTransactions, Attachments
             )
         }
+        CategorySeeder.seed(db)
         isDatabaseReady = true
     }
 }
