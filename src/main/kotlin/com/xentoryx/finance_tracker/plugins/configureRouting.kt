@@ -1,5 +1,6 @@
 ﻿package com.xentoryx.finance_tracker.plugins
 
+import com.xentoryx.finance_tracker.presentation.routes.accountRoutes
 import com.xentoryx.finance_tracker.presentation.routes.authRoutes
 import com.xentoryx.finance_tracker.presentation.routes.healthRoutes
 import com.xentoryx.finance_tracker.presentation.routes.transactionRoutes
@@ -11,6 +12,7 @@ fun Application.configureRouting() {
     routing {
         healthRoutes()
         authRoutes()
+        accountRoutes()
         transactionRoutes()
     }
 }

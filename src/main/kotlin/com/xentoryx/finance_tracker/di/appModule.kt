@@ -1,12 +1,18 @@
 ﻿package com.xentoryx.finance_tracker.di
 
+import com.xentoryx.finance_tracker.data.repository.account.AccountRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.auth.OtpRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.auth.PasswordResetRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.auth.RefreshTokenRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.auth.UserRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.transaction.TransactionRepositoryImpl
+import com.xentoryx.finance_tracker.domain.repository.account.AccountRepository
 import com.xentoryx.finance_tracker.domain.repository.auth.*
 import com.xentoryx.finance_tracker.domain.repository.transaction.TransactionRepository
+import com.xentoryx.finance_tracker.domain.usecase.account.CreateAccountUseCase
+import com.xentoryx.finance_tracker.domain.usecase.account.DeleteAccountUseCase
+import com.xentoryx.finance_tracker.domain.usecase.account.GetAccountsUseCase
+import com.xentoryx.finance_tracker.domain.usecase.account.UpdateAccountUseCase
 import com.xentoryx.finance_tracker.domain.usecase.auth.*
 import com.xentoryx.finance_tracker.domain.usecase.transaction.CreateTransactionUseCase
 import com.xentoryx.finance_tracker.domain.usecase.transaction.DeleteTransactionUseCase
@@ -38,6 +44,12 @@ fun appModule(application: Application) = module {
             }
         )
     }
+    single<AccountRepository> { AccountRepositoryImpl(get()) }
+
+    single { CreateAccountUseCase(get()) }
+    single { GetAccountsUseCase(get()) }
+    single { UpdateAccountUseCase(get()) }
+    single { DeleteAccountUseCase(get()) }
     single<TransactionRepository> { TransactionRepositoryImpl(get()) }
 
     single { CreateTransactionUseCase(get()) }
