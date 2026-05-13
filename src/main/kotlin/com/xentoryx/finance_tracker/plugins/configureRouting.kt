@@ -2,6 +2,7 @@
 
 import com.xentoryx.finance_tracker.presentation.routes.accountRoutes
 import com.xentoryx.finance_tracker.presentation.routes.authRoutes
+import com.xentoryx.finance_tracker.presentation.routes.budgetRoutes
 import com.xentoryx.finance_tracker.presentation.routes.categoryRoutes
 import com.xentoryx.finance_tracker.presentation.routes.dashboardRoutes
 import com.xentoryx.finance_tracker.presentation.routes.healthRoutes
@@ -18,5 +19,6 @@ fun Application.configureRouting() {
         categoryRoutes()
         transactionRoutes()
         dashboardRoutes()
+        budgetRoutes()
     }
 }

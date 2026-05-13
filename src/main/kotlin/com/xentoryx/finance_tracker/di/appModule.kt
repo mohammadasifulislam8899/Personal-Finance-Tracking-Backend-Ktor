@@ -20,12 +20,18 @@ import com.xentoryx.finance_tracker.domain.usecase.transaction.GetTransactionByI
 import com.xentoryx.finance_tracker.domain.usecase.transaction.GetTransactionsUseCase
 import com.xentoryx.finance_tracker.domain.usecase.transaction.UpdateTransactionUseCase
 import com.xentoryx.finance_tracker.data.repository.*
+import com.xentoryx.finance_tracker.data.repository.budget.BudgetRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.catgory.CategoryRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.dashboard.DashboardRepositoryImpl
 import com.xentoryx.finance_tracker.domain.repository.auth.*
+import com.xentoryx.finance_tracker.domain.repository.budget.BudgetRepository
 import com.xentoryx.finance_tracker.domain.repository.category.CategoryRepository
 import com.xentoryx.finance_tracker.domain.repository.dashboard.DashboardRepository
 import com.xentoryx.finance_tracker.domain.usecase.auth.*
+import com.xentoryx.finance_tracker.domain.usecase.budget.CreateBudgetUseCase
+import com.xentoryx.finance_tracker.domain.usecase.budget.DeleteBudgetUseCase
+import com.xentoryx.finance_tracker.domain.usecase.budget.GetBudgetsUseCase
+import com.xentoryx.finance_tracker.domain.usecase.budget.UpdateBudgetUseCase
 import com.xentoryx.finance_tracker.domain.usecase.category.CreateCategoryUseCase
 import com.xentoryx.finance_tracker.domain.usecase.category.DeleteCategoryUseCase
 import com.xentoryx.finance_tracker.domain.usecase.category.GetCategoriesUseCase
@@ -57,6 +63,12 @@ fun appModule(application: Application) = module {
             }
         )
     }
+    single<BudgetRepository> { BudgetRepositoryImpl(get()) }
+
+    single { CreateBudgetUseCase(get(), get()) }
+    single { GetBudgetsUseCase(get(), get(), get()) }
+    single { UpdateBudgetUseCase(get()) }
+    single { DeleteBudgetUseCase(get()) }
     single<DashboardRepository> { DashboardRepositoryImpl(get()) }
 
     single { GetDashboardUseCase(get(), get(), get()) }
