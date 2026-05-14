@@ -40,11 +40,13 @@ import com.xentoryx.finance_tracker.domain.usecase.category.GetCategoriesUseCase
 import com.xentoryx.finance_tracker.domain.usecase.category.UpdateCategoryUseCase
 import com.xentoryx.finance_tracker.domain.usecase.dashboard.GetDashboardUseCase
 import com.xentoryx.finance_tracker.domain.usecase.dashboard.GetMonthlyTrendUseCase
+import com.xentoryx.finance_tracker.domain.usecase.export.ExportTransactionsPdfUseCase
 import com.xentoryx.finance_tracker.domain.usecase.recurring.CreateRecurringTransactionUseCase
 import com.xentoryx.finance_tracker.domain.usecase.recurring.DeleteRecurringTransactionUseCase
 import com.xentoryx.finance_tracker.domain.usecase.recurring.GetRecurringTransactionsUseCase
 import com.xentoryx.finance_tracker.domain.usecase.recurring.ProcessRecurringTransactionsUseCase
 import com.xentoryx.finance_tracker.domain.usecase.recurring.UpdateRecurringTransactionUseCase
+import com.xentoryx.finance_tracker.export.PdfExportService
 import com.xentoryx.finance_tracker.infrastructure.email.EmailService
 import com.xentoryx.finance_tracker.security.JwtService
 import io.ktor.server.application.Application
@@ -107,7 +109,11 @@ fun appModule(application: Application) = module {
     single<OtpRepository> { OtpRepositoryImpl(get()) }
     single<PasswordResetRepository> { PasswordResetRepositoryImpl(get()) }
     single<RecurringTransactionRepository> { RecurringTransactionRepositoryImpl(get()) }
+    single { PdfExportService() }
 
+    single {
+        ExportTransactionsPdfUseCase(get(), get(), get(), get(), get())
+    }
     single { CreateRecurringTransactionUseCase(get()) }
     single { GetRecurringTransactionsUseCase(get()) }
     single { UpdateRecurringTransactionUseCase(get()) }
