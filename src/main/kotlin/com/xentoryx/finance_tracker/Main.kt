@@ -2,6 +2,7 @@
 
 import com.xentoryx.finance_tracker.di.appModule
 import com.xentoryx.finance_tracker.plugins.*
+import com.xentoryx.finance_tracker.scheduler.startRecurringScheduler
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import org.koin.ktor.plugin.Koin
@@ -20,4 +21,5 @@ fun Application.module() {
     configureDatabases()
     configureRouting()
     configureLogging()
+    startRecurringScheduler()
 }

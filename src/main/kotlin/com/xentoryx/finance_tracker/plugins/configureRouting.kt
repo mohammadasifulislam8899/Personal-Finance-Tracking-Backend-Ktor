@@ -6,6 +6,7 @@ import com.xentoryx.finance_tracker.presentation.routes.budgetRoutes
 import com.xentoryx.finance_tracker.presentation.routes.categoryRoutes
 import com.xentoryx.finance_tracker.presentation.routes.dashboardRoutes
 import com.xentoryx.finance_tracker.presentation.routes.healthRoutes
+import com.xentoryx.finance_tracker.presentation.routes.recurringTransactionRoutes
 import com.xentoryx.finance_tracker.presentation.routes.transactionRoutes
 import io.ktor.server.application.Application
 import io.ktor.server.routing.routing
@@ -20,5 +21,6 @@ fun Application.configureRouting() {
         transactionRoutes()
         dashboardRoutes()
         budgetRoutes()
+        recurringTransactionRoutes()
     }
 }

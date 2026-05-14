@@ -23,10 +23,12 @@ import com.xentoryx.finance_tracker.data.repository.*
 import com.xentoryx.finance_tracker.data.repository.budget.BudgetRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.catgory.CategoryRepositoryImpl
 import com.xentoryx.finance_tracker.data.repository.dashboard.DashboardRepositoryImpl
+import com.xentoryx.finance_tracker.data.repository.recurring.RecurringTransactionRepositoryImpl
 import com.xentoryx.finance_tracker.domain.repository.auth.*
 import com.xentoryx.finance_tracker.domain.repository.budget.BudgetRepository
 import com.xentoryx.finance_tracker.domain.repository.category.CategoryRepository
 import com.xentoryx.finance_tracker.domain.repository.dashboard.DashboardRepository
+import com.xentoryx.finance_tracker.domain.repository.recurring.RecurringTransactionRepository
 import com.xentoryx.finance_tracker.domain.usecase.auth.*
 import com.xentoryx.finance_tracker.domain.usecase.budget.CreateBudgetUseCase
 import com.xentoryx.finance_tracker.domain.usecase.budget.DeleteBudgetUseCase
@@ -38,6 +40,11 @@ import com.xentoryx.finance_tracker.domain.usecase.category.GetCategoriesUseCase
 import com.xentoryx.finance_tracker.domain.usecase.category.UpdateCategoryUseCase
 import com.xentoryx.finance_tracker.domain.usecase.dashboard.GetDashboardUseCase
 import com.xentoryx.finance_tracker.domain.usecase.dashboard.GetMonthlyTrendUseCase
+import com.xentoryx.finance_tracker.domain.usecase.recurring.CreateRecurringTransactionUseCase
+import com.xentoryx.finance_tracker.domain.usecase.recurring.DeleteRecurringTransactionUseCase
+import com.xentoryx.finance_tracker.domain.usecase.recurring.GetRecurringTransactionsUseCase
+import com.xentoryx.finance_tracker.domain.usecase.recurring.ProcessRecurringTransactionsUseCase
+import com.xentoryx.finance_tracker.domain.usecase.recurring.UpdateRecurringTransactionUseCase
 import com.xentoryx.finance_tracker.infrastructure.email.EmailService
 import com.xentoryx.finance_tracker.security.JwtService
 import io.ktor.server.application.Application
@@ -99,7 +106,13 @@ fun appModule(application: Application) = module {
     single<RefreshTokenRepository> { RefreshTokenRepositoryImpl(get()) }
     single<OtpRepository> { OtpRepositoryImpl(get()) }
     single<PasswordResetRepository> { PasswordResetRepositoryImpl(get()) }
+    single<RecurringTransactionRepository> { RecurringTransactionRepositoryImpl(get()) }
 
+    single { CreateRecurringTransactionUseCase(get()) }
+    single { GetRecurringTransactionsUseCase(get()) }
+    single { UpdateRecurringTransactionUseCase(get()) }
+    single { DeleteRecurringTransactionUseCase(get()) }
+    single { ProcessRecurringTransactionsUseCase(get(), get()) }
     single { RegisterUseCase(get(), get()) }
     single { LoginUseCase(get()) }
     single { VerifyEmailUseCase(get(), get()) }
