@@ -42,7 +42,18 @@ fun Route.transactionRoutes() {
                         HttpStatusCode.Unauthorized, MessageResponse("Invalid token")
                     )
                 val req = call.receive<CreateTransactionRequest>()
-                val tx  = createTransactionUseCase(userId, req)
+
+                // ✅ CHANGE: IllegalArgumentException catch করো (invalid categoryId)
+                val tx = runCatching { createTransactionUseCase(userId, req) }
+                    .getOrElse { e ->
+                        when (e) {
+                            is IllegalArgumentException -> return@post call.respond(
+                                HttpStatusCode.BadRequest, MessageResponse(e.message ?: "Invalid request")
+                            )
+                            else -> throw e
+                        }
+                    }
+
                 call.respond(HttpStatusCode.Created, tx.toTransactionResponse())
             }
 
@@ -102,7 +113,18 @@ fun Route.transactionRoutes() {
                     .getOrElse { return@put call.respond(HttpStatusCode.BadRequest, MessageResponse("Invalid transaction id")) }
 
                 val req = call.receive<UpdateTransactionRequest>()
-                val tx  = updateTransactionUseCase(id, userId, req)
+
+                // ✅ CHANGE: IllegalArgumentException catch করো (invalid categoryId / transaction not found)
+                val tx = runCatching { updateTransactionUseCase(id, userId, req) }
+                    .getOrElse { e ->
+                        when (e) {
+                            is IllegalArgumentException -> return@put call.respond(
+                                HttpStatusCode.BadRequest, MessageResponse(e.message ?: "Invalid request")
+                            )
+                            else -> throw e
+                        }
+                    }
+
                 call.respond(tx.toTransactionResponse())
             }
 

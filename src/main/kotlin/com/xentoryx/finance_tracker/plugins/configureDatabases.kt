@@ -14,6 +14,11 @@ fun Application.configureDatabases() {
     val db by inject<R2dbcDatabase>()
     runBlocking {
         suspendTransaction(db) {
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
             SchemaUtils.create(
                 Users, RefreshTokens, EmailVerifications, PasswordResets,
                 Accounts, Categories, Transactions, Budgets, RecurringTransactions, Attachments
