@@ -99,7 +99,6 @@ class CategoryRepositoryImpl(
         return suspendTransaction(db) {
             Categories.selectAll()
                 .where {
-                    (Categories.userId eq userId) and
                     (Categories.name eq name) and
                     (Categories.type eq type)
                 }

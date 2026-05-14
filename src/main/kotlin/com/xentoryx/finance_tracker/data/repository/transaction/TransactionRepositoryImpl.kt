@@ -2,6 +2,7 @@ package com.xentoryx.finance_tracker.data.repository.transaction
 
 import com.xentoryx.finance_tracker.data.mapper.toTransaction
 import com.xentoryx.finance_tracker.data.table.Accounts
+import com.xentoryx.finance_tracker.data.table.Categories
 import com.xentoryx.finance_tracker.data.table.Transactions
 import com.xentoryx.finance_tracker.domain.model.Transaction
 import com.xentoryx.finance_tracker.domain.model.TransactionType
@@ -10,11 +11,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.SqlExpressionBuilder
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greaterEq
 import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.minus
+import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import org.jetbrains.exposed.v1.r2dbc.insert
@@ -30,6 +32,16 @@ class TransactionRepositoryImpl(
 
     override suspend fun create(transaction: Transaction): Transaction {
         return suspendTransaction(db) {
+
+            // ── 0. Category existence validate করো ────────────────────────
+            val categoryExists = Categories
+                .selectAll()
+                .where { Categories.id eq transaction.categoryId }
+                .count() > 0
+
+            if (!categoryExists) {
+                throw IllegalArgumentException("Category not found: ${transaction.categoryId}")
+            }
 
             // ── 1. Transaction row insert ──────────────────────────────────
             Transactions.insert {
@@ -49,33 +61,25 @@ class TransactionRepositoryImpl(
 
                 TransactionType.INCOME -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        with(SqlExpressionBuilder) {
-                            it[balance] = balance + transaction.amount
-                        }
+                        it[balance] = balance + transaction.amount
                     }
                 }
 
                 TransactionType.EXPENSE -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        with(SqlExpressionBuilder) {
-                            it[balance] = balance - transaction.amount
-                        }
+                        it[balance] = balance - transaction.amount
                     }
                 }
 
                 TransactionType.TRANSFER -> {
                     // Source account থেকে কাটো
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        with(SqlExpressionBuilder) {
-                            it[balance] = balance - transaction.amount
-                        }
+                        it[balance] = balance - transaction.amount
                     }
                     // Destination account এ যোগ করো
                     transaction.transferToAccountId?.let { toId ->
                         Accounts.update({ Accounts.id eq toId }) {
-                            with(SqlExpressionBuilder) {
-                                it[balance] = balance + transaction.amount
-                            }
+                            it[balance] = balance + transaction.amount
                         }
                     }
                 }
@@ -118,8 +122,8 @@ class TransactionRepositoryImpl(
             Transactions.selectAll()
                 .where {
                     (Transactions.userId eq userId) and
-                    (Transactions.transactionDate greaterEq from) and
-                    (Transactions.transactionDate lessEq to)
+                            (Transactions.transactionDate greaterEq from) and
+                            (Transactions.transactionDate lessEq to)
                 }
                 .orderBy(Transactions.transactionDate, SortOrder.DESC)
                 .map { it.toTransaction() }
@@ -141,21 +145,21 @@ class TransactionRepositoryImpl(
             when (old.type) {
                 TransactionType.INCOME -> {
                     Accounts.update({ Accounts.id eq old.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance - old.amount }
+                        it[balance] = balance - old.amount
                     }
                 }
                 TransactionType.EXPENSE -> {
                     Accounts.update({ Accounts.id eq old.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance + old.amount }
+                        it[balance] = balance + old.amount
                     }
                 }
                 TransactionType.TRANSFER -> {
                     Accounts.update({ Accounts.id eq old.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance + old.amount }
+                        it[balance] = balance + old.amount
                     }
                     old.transferToAccountId?.let { toId ->
                         Accounts.update({ Accounts.id eq toId }) {
-                            with(SqlExpressionBuilder) { it[balance] = balance - old.amount }
+                            it[balance] = balance - old.amount
                         }
                     }
                 }
@@ -176,21 +180,21 @@ class TransactionRepositoryImpl(
             when (transaction.type) {
                 TransactionType.INCOME -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance + transaction.amount }
+                        it[balance] = balance + transaction.amount
                     }
                 }
                 TransactionType.EXPENSE -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance - transaction.amount }
+                        it[balance] = balance - transaction.amount
                     }
                 }
                 TransactionType.TRANSFER -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance - transaction.amount }
+                        it[balance] = balance - transaction.amount
                     }
                     transaction.transferToAccountId?.let { toId ->
                         Accounts.update({ Accounts.id eq toId }) {
-                            with(SqlExpressionBuilder) { it[balance] = balance + transaction.amount }
+                            it[balance] = balance + transaction.amount
                         }
                     }
                 }
@@ -207,7 +211,7 @@ class TransactionRepositoryImpl(
             val tx = Transactions.selectAll()
                 .where {
                     (Transactions.id eq id) and
-                    (Transactions.userId eq userId) // authorization check
+                            (Transactions.userId eq userId) // authorization check
                 }
                 .map { it.toTransaction() }
                 .singleOrNull()
@@ -216,21 +220,21 @@ class TransactionRepositoryImpl(
             when (tx.type) {
                 TransactionType.INCOME -> {
                     Accounts.update({ Accounts.id eq tx.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance - tx.amount }
+                        it[balance] = balance - tx.amount
                     }
                 }
                 TransactionType.EXPENSE -> {
                     Accounts.update({ Accounts.id eq tx.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance + tx.amount }
+                        it[balance] = balance + tx.amount
                     }
                 }
                 TransactionType.TRANSFER -> {
                     Accounts.update({ Accounts.id eq tx.accountId }) {
-                        with(SqlExpressionBuilder) { it[balance] = balance + tx.amount }
+                        it[balance] = balance + tx.amount
                     }
                     tx.transferToAccountId?.let { toId ->
                         Accounts.update({ Accounts.id eq toId }) {
-                            with(SqlExpressionBuilder) { it[balance] = balance - tx.amount }
+                            it[balance] = balance - tx.amount
                         }
                     }
                 }
@@ -238,7 +242,7 @@ class TransactionRepositoryImpl(
 
             Transactions.deleteWhere {
                 (Transactions.id eq id) and
-                (Transactions.userId eq userId)
+                        (Transactions.userId eq userId)
             } > 0
         }
     }
