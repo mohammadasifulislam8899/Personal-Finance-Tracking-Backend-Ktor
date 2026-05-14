@@ -1,4 +1,4 @@
-﻿package com.xentoryx.finance_tracker.data.repository
+﻿package com.xentoryx.finance_tracker.data.repository.auth
 
 import com.xentoryx.finance_tracker.data.table.EmailVerifications
 import com.xentoryx.finance_tracker.domain.repository.auth.OtpRepository

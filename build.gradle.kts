@@ -47,4 +47,8 @@ dependencies {
 
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("com.sun.mail:jakarta.mail:2.0.1")
+
+    // iText7 PDF
+    implementation("com.itextpdf:itext7-core:8.0.4")
+    implementation("com.itextpdf:bouncy-castle-adapter:8.0.4")
 }
