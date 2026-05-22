@@ -90,7 +90,7 @@ fun appModule(application: Application) = module {
     single { DeleteAccountUseCase(get()) }
     single<TransactionRepository> { TransactionRepositoryImpl(get()) }
 
-    single { CreateTransactionUseCase(get()) }
+    single { CreateTransactionUseCase(get(), get()) }
     single { GetTransactionsUseCase(get()) }
     single { GetTransactionByIdUseCase(get()) }
     single { UpdateTransactionUseCase(get()) }
@@ -129,3 +129,4 @@ fun appModule(application: Application) = module {
     single { GetUserProfileUseCase(get()) }
     single { LogoutUseCase(get()) }
 }
+
