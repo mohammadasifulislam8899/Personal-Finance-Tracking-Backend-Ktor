@@ -13,18 +13,19 @@ class ForgotPasswordUseCase(
 ) {
     suspend operator fun invoke(email: String): Pair<String, String> {
 
+        // FIX: email enumeration vulnerability — always return same response
         val user = userRepository.findByEmail(email.trim().lowercase())
-            ?: throw IllegalArgumentException("If this email exists, a reset link will be sent")
+            ?: return Pair("", "")
 
         val rawToken = UUID.randomUUID().toString()
 
         passwordResetRepository.create(
             PasswordReset(
-                id = UUID.randomUUID(),
-                userId = user.id,
-                token = rawToken.hashSHA256(),
+                id        = UUID.randomUUID(),
+                userId    = user.id,
+                token     = rawToken.hashSHA256(),
                 expiresAt = LocalDateTime.now().plusHours(1),
-                usedAt = null,
+                usedAt    = null,
                 createdAt = LocalDateTime.now()
             )
         )

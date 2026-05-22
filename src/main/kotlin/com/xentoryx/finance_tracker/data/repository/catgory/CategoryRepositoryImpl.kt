@@ -1,4 +1,4 @@
-package com.xentoryx.finance_tracker.data.repository.catgory
+﻿package com.xentoryx.finance_tracker.data.repository.catgory
 
 import com.xentoryx.finance_tracker.data.mapper.toCategory
 import com.xentoryx.finance_tracker.data.table.Categories
@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.jetbrains.exposed.v1.r2dbc.deleteWhere
@@ -52,7 +51,6 @@ class CategoryRepositoryImpl(
         return suspendTransaction(db) {
             Categories.selectAll()
                 .where {
-                    // নিজের categories + system categories
                     (Categories.userId eq userId) or
                     (Categories.isSystem eq true)
                 }
@@ -90,15 +88,17 @@ class CategoryRepositoryImpl(
             Categories.deleteWhere {
                 (Categories.id eq id) and
                 (Categories.userId eq userId) and
-                (Categories.isSystem eq false) // system category delete করা যাবে না
+                (Categories.isSystem eq false)
             } > 0
         }
     }
 
     override suspend fun existsByName(userId: UUID, name: String, type: String): Boolean {
         return suspendTransaction(db) {
+            // FIX: userId was ignored — now properly scoped per user
             Categories.selectAll()
                 .where {
+                    (Categories.userId eq userId) and
                     (Categories.name eq name) and
                     (Categories.type eq type)
                 }

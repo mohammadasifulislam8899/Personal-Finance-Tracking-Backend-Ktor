@@ -1,8 +1,7 @@
-package com.xentoryx.finance_tracker.data.repository.transaction
+﻿package com.xentoryx.finance_tracker.data.repository.transaction
 
 import com.xentoryx.finance_tracker.data.mapper.toTransaction
 import com.xentoryx.finance_tracker.data.table.Accounts
-import com.xentoryx.finance_tracker.data.table.Categories
 import com.xentoryx.finance_tracker.data.table.Transactions
 import com.xentoryx.finance_tracker.domain.model.Transaction
 import com.xentoryx.finance_tracker.domain.model.TransactionType
@@ -32,18 +31,8 @@ class TransactionRepositoryImpl(
 
     override suspend fun create(transaction: Transaction): Transaction {
         return suspendTransaction(db) {
+            // FIX: removed category validation — business logic belongs in UseCase layer
 
-            // ── 0. Category existence validate করো ────────────────────────
-            val categoryExists = Categories
-                .selectAll()
-                .where { Categories.id eq transaction.categoryId }
-                .count() > 0
-
-            if (!categoryExists) {
-                throw IllegalArgumentException("Category not found: ${transaction.categoryId}")
-            }
-
-            // ── 1. Transaction row insert ──────────────────────────────────
             Transactions.insert {
                 it[id]                = transaction.id
                 it[userId]            = transaction.userId
@@ -56,27 +45,21 @@ class TransactionRepositoryImpl(
                 it[transactionDate]   = transaction.transactionDate
             }
 
-            // ── 2. Account balance update (same transaction = atomic) ──────
             when (transaction.type) {
-
                 TransactionType.INCOME -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
                         it[balance] = balance + transaction.amount
                     }
                 }
-
                 TransactionType.EXPENSE -> {
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
                         it[balance] = balance - transaction.amount
                     }
                 }
-
                 TransactionType.TRANSFER -> {
-                    // Source account থেকে কাটো
                     Accounts.update({ Accounts.id eq transaction.accountId }) {
                         it[balance] = balance - transaction.amount
                     }
-                    // Destination account এ যোগ করো
                     transaction.transferToAccountId?.let { toId ->
                         Accounts.update({ Accounts.id eq toId }) {
                             it[balance] = balance + transaction.amount
@@ -98,11 +81,7 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override suspend fun findByUserId(
-        userId: UUID,
-        limit: Int,
-        offset: Long
-    ): List<Transaction> {
+    override suspend fun findByUserId(userId: UUID, limit: Int, offset: Long): List<Transaction> {
         return suspendTransaction(db) {
             Transactions.selectAll()
                 .where { Transactions.userId eq userId }
@@ -113,17 +92,13 @@ class TransactionRepositoryImpl(
         }
     }
 
-    override suspend fun findByUserIdAndDateRange(
-        userId: UUID,
-        from: LocalDate,
-        to: LocalDate
-    ): List<Transaction> {
+    override suspend fun findByUserIdAndDateRange(userId: UUID, from: LocalDate, to: LocalDate): List<Transaction> {
         return suspendTransaction(db) {
             Transactions.selectAll()
                 .where {
                     (Transactions.userId eq userId) and
-                            (Transactions.transactionDate greaterEq from) and
-                            (Transactions.transactionDate lessEq to)
+                    (Transactions.transactionDate greaterEq from) and
+                    (Transactions.transactionDate lessEq to)
                 }
                 .orderBy(Transactions.transactionDate, SortOrder.DESC)
                 .map { it.toTransaction() }
@@ -133,39 +108,21 @@ class TransactionRepositoryImpl(
 
     override suspend fun update(transaction: Transaction): Transaction {
         return suspendTransaction(db) {
-
-            // ── পুরনো transaction load করো balance rollback এর জন্য ──────
             val old = Transactions.selectAll()
                 .where { Transactions.id eq transaction.id }
                 .map { it.toTransaction() }
                 .singleOrNull()
-                ?: throw IllegalArgumentException("Transaction not found")
+                ?: throw com.xentoryx.finance_tracker.exception.NotFoundException("Transaction not found")
 
-            // ── পুরনো balance effect উল্টে দাও ──────────────────────────
             when (old.type) {
-                TransactionType.INCOME -> {
-                    Accounts.update({ Accounts.id eq old.accountId }) {
-                        it[balance] = balance - old.amount
-                    }
-                }
-                TransactionType.EXPENSE -> {
-                    Accounts.update({ Accounts.id eq old.accountId }) {
-                        it[balance] = balance + old.amount
-                    }
-                }
+                TransactionType.INCOME  -> Accounts.update({ Accounts.id eq old.accountId }) { it[balance] = balance - old.amount }
+                TransactionType.EXPENSE -> Accounts.update({ Accounts.id eq old.accountId }) { it[balance] = balance + old.amount }
                 TransactionType.TRANSFER -> {
-                    Accounts.update({ Accounts.id eq old.accountId }) {
-                        it[balance] = balance + old.amount
-                    }
-                    old.transferToAccountId?.let { toId ->
-                        Accounts.update({ Accounts.id eq toId }) {
-                            it[balance] = balance - old.amount
-                        }
-                    }
+                    Accounts.update({ Accounts.id eq old.accountId }) { it[balance] = balance + old.amount }
+                    old.transferToAccountId?.let { toId -> Accounts.update({ Accounts.id eq toId }) { it[balance] = balance - old.amount } }
                 }
             }
 
-            // ── নতুন transaction row update ───────────────────────────────
             Transactions.update({ Transactions.id eq transaction.id }) {
                 it[accountId]         = transaction.accountId
                 it[categoryId]        = transaction.categoryId
@@ -176,27 +133,12 @@ class TransactionRepositoryImpl(
                 it[transactionDate]   = transaction.transactionDate
             }
 
-            // ── নতুন balance effect apply করো ────────────────────────────
             when (transaction.type) {
-                TransactionType.INCOME -> {
-                    Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        it[balance] = balance + transaction.amount
-                    }
-                }
-                TransactionType.EXPENSE -> {
-                    Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        it[balance] = balance - transaction.amount
-                    }
-                }
+                TransactionType.INCOME  -> Accounts.update({ Accounts.id eq transaction.accountId }) { it[balance] = balance + transaction.amount }
+                TransactionType.EXPENSE -> Accounts.update({ Accounts.id eq transaction.accountId }) { it[balance] = balance - transaction.amount }
                 TransactionType.TRANSFER -> {
-                    Accounts.update({ Accounts.id eq transaction.accountId }) {
-                        it[balance] = balance - transaction.amount
-                    }
-                    transaction.transferToAccountId?.let { toId ->
-                        Accounts.update({ Accounts.id eq toId }) {
-                            it[balance] = balance + transaction.amount
-                        }
-                    }
+                    Accounts.update({ Accounts.id eq transaction.accountId }) { it[balance] = balance - transaction.amount }
+                    transaction.transferToAccountId?.let { toId -> Accounts.update({ Accounts.id eq toId }) { it[balance] = balance + transaction.amount } }
                 }
             }
 
@@ -206,44 +148,21 @@ class TransactionRepositoryImpl(
 
     override suspend fun delete(id: UUID, userId: UUID): Boolean {
         return suspendTransaction(db) {
-
-            // ── Delete আগে balance rollback ───────────────────────────────
             val tx = Transactions.selectAll()
-                .where {
-                    (Transactions.id eq id) and
-                            (Transactions.userId eq userId) // authorization check
-                }
+                .where { (Transactions.id eq id) and (Transactions.userId eq userId) }
                 .map { it.toTransaction() }
-                .singleOrNull()
-                ?: return@suspendTransaction false
+                .singleOrNull() ?: return@suspendTransaction false
 
             when (tx.type) {
-                TransactionType.INCOME -> {
-                    Accounts.update({ Accounts.id eq tx.accountId }) {
-                        it[balance] = balance - tx.amount
-                    }
-                }
-                TransactionType.EXPENSE -> {
-                    Accounts.update({ Accounts.id eq tx.accountId }) {
-                        it[balance] = balance + tx.amount
-                    }
-                }
+                TransactionType.INCOME  -> Accounts.update({ Accounts.id eq tx.accountId }) { it[balance] = balance - tx.amount }
+                TransactionType.EXPENSE -> Accounts.update({ Accounts.id eq tx.accountId }) { it[balance] = balance + tx.amount }
                 TransactionType.TRANSFER -> {
-                    Accounts.update({ Accounts.id eq tx.accountId }) {
-                        it[balance] = balance + tx.amount
-                    }
-                    tx.transferToAccountId?.let { toId ->
-                        Accounts.update({ Accounts.id eq toId }) {
-                            it[balance] = balance - tx.amount
-                        }
-                    }
+                    Accounts.update({ Accounts.id eq tx.accountId }) { it[balance] = balance + tx.amount }
+                    tx.transferToAccountId?.let { toId -> Accounts.update({ Accounts.id eq toId }) { it[balance] = balance - tx.amount } }
                 }
             }
 
-            Transactions.deleteWhere {
-                (Transactions.id eq id) and
-                        (Transactions.userId eq userId)
-            } > 0
+            Transactions.deleteWhere { (Transactions.id eq id) and (Transactions.userId eq userId) } > 0
         }
     }
 }

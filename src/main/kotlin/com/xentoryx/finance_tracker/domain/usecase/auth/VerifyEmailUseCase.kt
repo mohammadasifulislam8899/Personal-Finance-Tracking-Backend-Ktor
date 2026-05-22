@@ -2,6 +2,8 @@
 
 import com.xentoryx.finance_tracker.domain.repository.auth.OtpRepository
 import com.xentoryx.finance_tracker.domain.repository.auth.UserRepository
+import com.xentoryx.finance_tracker.exception.NotFoundException
+import com.xentoryx.finance_tracker.exception.ValidationException
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -12,16 +14,15 @@ class VerifyEmailUseCase(
     suspend operator fun invoke(userId: UUID, otp: String) {
 
         val user = userRepository.findById(userId)
-            ?: throw IllegalArgumentException("User not found")
+            ?: throw NotFoundException("User not found")
 
         if (user.isEmailVerified)
-            throw IllegalArgumentException("Email is already verified")
+            throw ValidationException("Email is already verified")
 
         val isValid = otpRepository.findValidOtp(userId, otp)
-        if (!isValid) throw IllegalArgumentException("Invalid or expired OTP")
+        if (!isValid) throw ValidationException("Invalid or expired OTP")
 
         otpRepository.markAsUsed(userId, otp)
-
         userRepository.update(user.copy(isEmailVerified = true, updatedAt = LocalDateTime.now()))
     }
 }

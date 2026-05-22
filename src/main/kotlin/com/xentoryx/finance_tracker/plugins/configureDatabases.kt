@@ -15,6 +15,11 @@ fun Application.configureDatabases() {
     runBlocking {
         suspendTransaction(db) {
 
+//            SchemaUtils.drop(
+//                Users, RefreshTokens, EmailVerifications, PasswordResets,
+//                Accounts, Categories, Transactions, Budgets, RecurringTransactions, Attachments
+//            )
+
             SchemaUtils.create(
                 Users, RefreshTokens, EmailVerifications, PasswordResets,
                 Accounts, Categories, Transactions, Budgets, RecurringTransactions, Attachments
