@@ -27,9 +27,10 @@ class UpdateCategoryUseCase(
         return categoryRepository.update(
             existing.copy(
                 name  = req.name.trim(),
-                icon  = req req.icon?.trim() ?: existing.icon,
+                icon  = req.icon?.trim() ?: existing.icon,
                 color = req.color?.trim() ?: existing.color
             )
         )
     }
 }
+
