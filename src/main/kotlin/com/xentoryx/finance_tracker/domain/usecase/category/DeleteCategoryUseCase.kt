@@ -1,6 +1,8 @@
-package com.xentoryx.finance_tracker.domain.usecase.category
+﻿package com.xentoryx.finance_tracker.domain.usecase.category
 
 import com.xentoryx.finance_tracker.domain.repository.category.CategoryRepository
+import com.xentoryx.finance_tracker.exception.NotFoundException
+import com.xentoryx.finance_tracker.exception.ValidationException
 import java.util.UUID
 
 class DeleteCategoryUseCase(
@@ -8,12 +10,12 @@ class DeleteCategoryUseCase(
 ) {
     suspend operator fun invoke(id: UUID, userId: UUID) {
         val existing = categoryRepository.findById(id)
-            ?: throw IllegalArgumentException("Category not found")
+            ?: throw NotFoundException("Category not found")
 
         if (existing.isSystem)
-            throw IllegalArgumentException("System categories cannot be deleted")
+            throw ValidationException("System categories cannot be deleted")
 
         val deleted = categoryRepository.delete(id, userId)
-        if (!deleted) throw IllegalArgumentException("Category not found")
+        if (!deleted) throw NotFoundException("Category not found")
     }
 }

@@ -1,4 +1,4 @@
-package com.xentoryx.finance_tracker.presentation.routes
+﻿package com.xentoryx.finance_tracker.presentation.routes
 
 import com.xentoryx.finance_tracker.domain.usecase.category.*
 import com.xentoryx.finance_tracker.presentation.dto.request.CreateCategoryRequest
@@ -36,7 +36,7 @@ fun Route.categoryRoutes() {
                 call.respond(HttpStatusCode.Created, category.toCategoryResponse())
             }
 
-            // GET /categories  (system + user এর নিজের)
+            // GET /categories  (system + user à¦à¦° à¦¨à¦¿à¦œà§‡à¦°)
             get {
                 val userId     = call.userId() ?: return@get call.respond(
                     HttpStatusCode.Unauthorized, MessageResponse("Invalid token")
@@ -85,8 +85,3 @@ fun Route.categoryRoutes() {
     }
 }
 
-private fun io.ktor.server.application.ApplicationCall.userId(): UUID? {
-    val raw = principal<JWTPrincipal>()
-        ?.payload?.getClaim("userId")?.asString() ?: return null
-    return runCatching { UUID.fromString(raw) }.getOrNull()
-}

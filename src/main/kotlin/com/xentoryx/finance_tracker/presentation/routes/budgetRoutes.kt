@@ -1,4 +1,4 @@
-package com.xentoryx.finance_tracker.presentation.routes
+﻿package com.xentoryx.finance_tracker.presentation.routes
 
 import com.xentoryx.finance_tracker.domain.usecase.budget.*
 import com.xentoryx.finance_tracker.presentation.dto.request.CreateBudgetRequest
@@ -34,7 +34,7 @@ fun Route.budgetRoutes() {
                 val req    = call.receive<CreateBudgetRequest>()
                 val budget = createBudgetUseCase(userId, req)
                     .let { b ->
-                        // BudgetWithProgress wrap করতে হবে response এর জন্য
+                        // BudgetWithProgress wrap à¦•à¦°à¦¤à§‡ à¦¹à¦¬à§‡ response à¦à¦° à¦œà¦¨à§à¦¯
                         getBudgetsUseCase(b.id, userId)
                     }
                 call.respond(HttpStatusCode.Created, budget.toBudgetResponse())
@@ -90,8 +90,3 @@ fun Route.budgetRoutes() {
     }
 }
 
-private fun io.ktor.server.application.ApplicationCall.userId(): UUID? {
-    val raw = principal<JWTPrincipal>()
-        ?.payload?.getClaim("userId")?.asString() ?: return null
-    return runCatching { UUID.fromString(raw) }.getOrNull()
-}

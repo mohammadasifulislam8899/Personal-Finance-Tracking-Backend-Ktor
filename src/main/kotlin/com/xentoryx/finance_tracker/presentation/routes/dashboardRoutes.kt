@@ -1,4 +1,4 @@
-package com.xentoryx.finance_tracker.presentation.routes
+﻿package com.xentoryx.finance_tracker.presentation.routes
 
 import com.xentoryx.finance_tracker.domain.usecase.dashboard.GetDashboardUseCase
 import com.xentoryx.finance_tracker.domain.usecase.dashboard.GetMonthlyTrendUseCase
@@ -48,8 +48,3 @@ fun Route.dashboardRoutes() {
     }
 }
 
-private fun io.ktor.server.application.ApplicationCall.userId(): UUID? {
-    val raw = principal<JWTPrincipal>()
-        ?.payload?.getClaim("userId")?.asString() ?: return null
-    return runCatching { UUID.fromString(raw) }.getOrNull()
-}

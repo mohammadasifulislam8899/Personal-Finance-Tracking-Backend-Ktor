@@ -1,7 +1,8 @@
-package com.xentoryx.finance_tracker.domain.usecase.recurring
+﻿package com.xentoryx.finance_tracker.domain.usecase.recurring
 
 import com.xentoryx.finance_tracker.domain.model.RecurringTransaction
 import com.xentoryx.finance_tracker.domain.repository.recurring.RecurringTransactionRepository
+import com.xentoryx.finance_tracker.exception.NotFoundException
 import java.util.UUID
 
 class GetRecurringTransactionsUseCase(
@@ -13,10 +14,10 @@ class GetRecurringTransactionsUseCase(
 
     suspend operator fun invoke(id: UUID, userId: UUID): RecurringTransaction {
         val recurring = recurringRepository.findById(id)
-            ?: throw IllegalArgumentException("Recurring transaction not found")
+            ?: throw NotFoundException("Recurring transaction not found")
 
         if (recurring.userId != userId)
-            throw IllegalArgumentException("Recurring transaction not found")
+            throw NotFoundException("Recurring transaction not found")
 
         return recurring
     }

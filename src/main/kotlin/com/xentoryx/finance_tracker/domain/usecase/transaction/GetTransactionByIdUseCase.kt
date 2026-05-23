@@ -1,7 +1,8 @@
-package com.xentoryx.finance_tracker.domain.usecase.transaction
+﻿package com.xentoryx.finance_tracker.domain.usecase.transaction
 
 import com.xentoryx.finance_tracker.domain.model.Transaction
 import com.xentoryx.finance_tracker.domain.repository.transaction.TransactionRepository
+import com.xentoryx.finance_tracker.exception.NotFoundException
 import java.util.UUID
 
 class GetTransactionByIdUseCase(
@@ -9,10 +10,10 @@ class GetTransactionByIdUseCase(
 ) {
     suspend operator fun invoke(id: UUID, userId: UUID): Transaction {
         val tx = transactionRepository.findById(id)
-            ?: throw IllegalArgumentException("Transaction not found")
+            ?: throw NotFoundException("Transaction not found")
 
         if (tx.userId != userId)
-            throw IllegalArgumentException("Transaction not found")
+            throw NotFoundException("Transaction not found")
 
         return tx
     }

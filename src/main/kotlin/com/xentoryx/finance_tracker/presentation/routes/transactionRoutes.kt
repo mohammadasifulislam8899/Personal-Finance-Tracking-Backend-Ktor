@@ -1,4 +1,4 @@
-package com.xentoryx.finance_tracker.presentation.routes
+﻿package com.xentoryx.finance_tracker.presentation.routes
 
 import com.xentoryx.finance_tracker.domain.usecase.transaction.*
 import com.xentoryx.finance_tracker.presentation.dto.request.CreateTransactionRequest
@@ -35,95 +35,12 @@ fun Route.transactionRoutes() {
     authenticate("auth-jwt") {
         route("/transactions") {
 
-            // POST /transactions
-            post {
-                val userId = call.userId()
-                    ?: return@post call.respond(
-                        HttpStatusCode.Unauthorized, MessageResponse("Invalid token")
-                    )
-                val req = call.receive<CreateTransactionRequest>()
-
-                // ✅ CHANGE: IllegalArgumentException catch করো (invalid categoryId)
-                val tx = runCatching { createTransactionUseCase(userId, req) }
-                    .getOrElse { e ->
-                        when (e) {
-                            is IllegalArgumentException -> return@post call.respond(
-                                HttpStatusCode.BadRequest, MessageResponse(e.message ?: "Invalid request")
-                            )
-                            else -> throw e
-                        }
-                    }
+                            val tx = createTransactionUseCase(userId, req)
 
                 call.respond(HttpStatusCode.Created, tx.toTransactionResponse())
             }
 
-            // GET /transactions?page=1&limit=20
-            // GET /transactions?from=2025-05-01&to=2025-05-31
-            get {
-                val userId = call.userId()
-                    ?: return@get call.respond(
-                        HttpStatusCode.Unauthorized, MessageResponse("Invalid token")
-                    )
-
-                val from  = call.request.queryParameters["from"]
-                val to    = call.request.queryParameters["to"]
-                val page  = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
-
-                val list = if (from != null && to != null) {
-                    val fromDate = runCatching { LocalDate.parse(from) }
-                        .getOrElse { return@get call.respond(HttpStatusCode.BadRequest, MessageResponse("Invalid 'from' date")) }
-                    val toDate = runCatching { LocalDate.parse(to) }
-                        .getOrElse { return@get call.respond(HttpStatusCode.BadRequest, MessageResponse("Invalid 'to' date")) }
-                    getTransactionsUseCase(userId, fromDate, toDate)
-                } else {
-                    getTransactionsUseCase(userId, page, limit)
-                }
-
-                call.respond(
-                    TransactionListResponse(
-                        data  = list.toTransactionResponseList(),
-                        page  = page,
-                        limit = limit,
-                        total = list.size
-                    )
-                )
-            }
-
-            // GET /transactions/{id}
-            get("/{id}") {
-                val userId = call.userId()
-                    ?: return@get call.respond(
-                        HttpStatusCode.Unauthorized, MessageResponse("Invalid token")
-                    )
-                val id = runCatching { UUID.fromString(call.parameters["id"]) }
-                    .getOrElse { return@get call.respond(HttpStatusCode.BadRequest, MessageResponse("Invalid transaction id")) }
-
-                val tx = getTransactionByIdUseCase(id, userId)
-                call.respond(tx.toTransactionResponse())
-            }
-
-            // PUT /transactions/{id}
-            put("/{id}") {
-                val userId = call.userId()
-                    ?: return@put call.respond(
-                        HttpStatusCode.Unauthorized, MessageResponse("Invalid token")
-                    )
-                val id = runCatching { UUID.fromString(call.parameters["id"]) }
-                    .getOrElse { return@put call.respond(HttpStatusCode.BadRequest, MessageResponse("Invalid transaction id")) }
-
-                val req = call.receive<UpdateTransactionRequest>()
-
-                // ✅ CHANGE: IllegalArgumentException catch করো (invalid categoryId / transaction not found)
-                val tx = runCatching { updateTransactionUseCase(id, userId, req) }
-                    .getOrElse { e ->
-                        when (e) {
-                            is IllegalArgumentException -> return@put call.respond(
-                                HttpStatusCode.BadRequest, MessageResponse(e.message ?: "Invalid request")
-                            )
-                            else -> throw e
-                        }
-                    }
+                            val tx = updateTransactionUseCase(id, userId, req)
 
                 call.respond(tx.toTransactionResponse())
             }
@@ -144,9 +61,4 @@ fun Route.transactionRoutes() {
     }
 }
 
-// Extension — userId বার বার extract করার helper
-private fun ApplicationCall.userId(): UUID? {
-    val raw = principal<JWTPrincipal>()
-        ?.payload?.getClaim("userId")?.asString() ?: return null
-    return runCatching { UUID.fromString(raw) }.getOrNull()
-}
+
